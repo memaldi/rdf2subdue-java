@@ -9,5 +9,8 @@
 	<classpathentry kind="lib" path="lib/jena-iri-0.9.4.jar"/>
 	<classpathentry kind="lib" path="lib/slf4j-simple-1.7.2.jar"/>
 	<classpathentry kind="lib" path="lib/jena-core-2.7.4-javadoc.jar"/>
+	<classpathentry kind="lib" path="lib/jena-tdb-0.9.4.jar"/>
+	<classpathentry kind="lib" path="lib/jena-arq-2.9.4.jar"/>
+	<classpathentry kind="lib" path="lib/one-jar-ant-task-0.97.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

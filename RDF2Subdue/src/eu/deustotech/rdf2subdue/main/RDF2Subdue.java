@@ -4,28 +4,26 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Dictionary;
 import java.util.List;
+import java.util.Properties;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.hp.hpl.jena.query.Dataset;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
-import com.hp.hpl.jena.rdf.model.NodeIterator;
 import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.rdf.model.RDFReader;
 import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.rdf.model.Statement;
-import com.hp.hpl.jena.rdf.model.StmtIterator;
+import com.hp.hpl.jena.tdb.TDBFactory;
 import com.hp.hpl.jena.vocabulary.RDF;
 
 class ModelLoader extends Thread {
@@ -63,19 +61,41 @@ class ModelLoader extends Thread {
 
 public class RDF2Subdue {
 	
-	private static String INPUT_DIR = "/home/mikel/doctorado/src/java/rdf2subdue-java/RDF2Subdue/models/morelab/";
-	private static String NAMESPACE_URI = "http://morelab/";
-	private static String OUTPUT_FILE = "/home/mikel/doctorado/src/java/rdf2subdue-java/RDF2Subdue/graphs/morelab/morelab.g";
+	//private static String INPUT_DIR = "/home/mikel/doctorado/src/rdf2subdue/models.bak";
+	//private static String NAMESPACE_URI = "http://acm/";
+	//private static String OUTPUT_FILE = "/home/mikel/doctorado/src/java/rdf2subdue-java/RDF2Subdue/graphs/acm.g";
+	//private static String TDB_DIR = "tdb";
 	
 	public static void main(String args[]) {
 		
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd - HH:mm:ss");
 		Logger logger = LoggerFactory.getLogger(RDF2Subdue.class);
 		
+		//Loading Props
+		Properties configFile = new Properties();
+		InputStream in;
+		try {
+			in = new FileInputStream(args[0]);
+			configFile.load(in);
+		} catch (FileNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		String inputDir = configFile.getProperty("INPUT_DIR");
+		String namespaceURI = configFile.getProperty("NAMESPACE_URI");
+		String outputDir = configFile.getProperty("OUTPUT_DIR");
+		String tdbDir = configFile.getProperty("TDB_DIR");
+		
 		// Loading model
 		logger.info(String.format("[%s] Loading model...", sdf.format(System.currentTimeMillis())));
-		Model model = ModelFactory.createDefaultModel();
-		model.add(loadModel());
+		//Model model = ModelFactory.createDefaultModel();
+		Dataset dataset = TDBFactory.createDataset(tdbDir);
+		Model model = dataset.getDefaultModel();
+		model.add(loadModel(inputDir, namespaceURI));
 		logger.info(String.format("[%s] Model loaded!", sdf.format(System.currentTimeMillis())));
 		
 		//Retrieving subjects
@@ -93,7 +113,7 @@ public class RDF2Subdue {
 		List<RDFNode> nodes = new ArrayList<RDFNode>();
 		BufferedWriter out = null;
 		try {
-			FileWriter fstream = new FileWriter(OUTPUT_FILE);
+			FileWriter fstream = new FileWriter(outputDir);
 			out = new BufferedWriter(fstream);
 			int i = 1;
 			for (RDFNode subject : subjects) {
@@ -144,18 +164,20 @@ public class RDF2Subdue {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		model.close();
 		logger.info(String.format("[%s] Finished!", sdf.format(System.currentTimeMillis())));
 	}
 
-	private static Model loadModel() {
+	private static Model loadModel(String inputDir, String namespaceURI) {
 		Model model = ModelFactory.createDefaultModel();
 		List<ModelLoader> modelPool = new ArrayList<ModelLoader>();
 		
-		File folder = new File(INPUT_DIR);
+		File folder = new File(inputDir);
 		for (File fileEntry : folder.listFiles()) {
 			
 			Model tempModel = ModelFactory.createDefaultModel();
-			ModelLoader ml = new ModelLoader(tempModel, fileEntry, NAMESPACE_URI);
+			ModelLoader ml = new ModelLoader(tempModel, fileEntry, namespaceURI);
 			ml.start();
 			
 			modelPool.add(ml);
