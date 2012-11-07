@@ -4,3 +4,7 @@
 *.jar
 *.war
 *.ear
+
+.metadata/*
+RDF2Subdue/tdb/*
+RDF2Subdue/graphs/*

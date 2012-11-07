@@ -75,7 +75,7 @@ public class RDF2Subdue {
 		Properties configFile = new Properties();
 		InputStream in;
 		try {
-			in = new FileInputStream(args[0]);
+			in = new FileInputStream("config.properties");
 			configFile.load(in);
 		} catch (FileNotFoundException e1) {
 			// TODO Auto-generated catch block
@@ -87,15 +87,15 @@ public class RDF2Subdue {
 		
 		String inputDir = configFile.getProperty("INPUT_DIR");
 		String namespaceURI = configFile.getProperty("NAMESPACE_URI");
-		String outputDir = configFile.getProperty("OUTPUT_DIR");
+		String outputDir = configFile.getProperty("OUTPUT_FILE");
 		String tdbDir = configFile.getProperty("TDB_DIR");
 		
 		// Loading model
-		logger.info(String.format("[%s] Loading model...", sdf.format(System.currentTimeMillis())));
+		logger.info(String.format("[%s] Loading model from %s...", sdf.format(System.currentTimeMillis()), tdbDir));
 		//Model model = ModelFactory.createDefaultModel();
 		Dataset dataset = TDBFactory.createDataset(tdbDir);
 		Model model = dataset.getDefaultModel();
-		model.add(loadModel(inputDir, namespaceURI));
+		//model.add(loadModel(inputDir, namespaceURI));
 		logger.info(String.format("[%s] Model loaded!", sdf.format(System.currentTimeMillis())));
 		
 		//Retrieving subjects
