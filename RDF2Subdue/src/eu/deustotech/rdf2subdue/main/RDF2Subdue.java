@@ -1,7 +1,6 @@
 package eu.deustotech.rdf2subdue.main;
 
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
@@ -17,54 +16,15 @@ import org.slf4j.LoggerFactory;
 
 import com.hp.hpl.jena.query.Dataset;
 import com.hp.hpl.jena.rdf.model.Model;
-import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.RDFNode;
-import com.hp.hpl.jena.rdf.model.RDFReader;
 import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.rdf.model.Statement;
 import com.hp.hpl.jena.tdb.TDBFactory;
 import com.hp.hpl.jena.vocabulary.RDF;
 
-class ModelLoader extends Thread {
-
-	Thread t;
-	
-	Model model;
-	File fileEntry;
-	String uri;
-	
-	public ModelLoader(Model model, File fileEntry, String uri) {
-		this.model = model;
-		this.fileEntry = fileEntry;
-		this.uri = uri;
-	}
-	
-	@Override
-	public void run() {
-		RDFReader reader = model.getReader();
-		InputStream in;
-		try {
-			in = new FileInputStream(fileEntry.toString());
-			reader.read(this.model, in, this.uri);
-			in.close();
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}		
-	}
-	
-}
 
 public class RDF2Subdue {
-	
-	//private static String INPUT_DIR = "/home/mikel/doctorado/src/rdf2subdue/models.bak";
-	//private static String NAMESPACE_URI = "http://acm/";
-	//private static String OUTPUT_FILE = "/home/mikel/doctorado/src/java/rdf2subdue-java/RDF2Subdue/graphs/acm.g";
-	//private static String TDB_DIR = "tdb";
 	
 	public static void main(String args[]) {
 		
@@ -85,8 +45,6 @@ public class RDF2Subdue {
 			e.printStackTrace();
 		}
 		
-		String inputDir = configFile.getProperty("INPUT_DIR");
-		String namespaceURI = configFile.getProperty("NAMESPACE_URI");
 		String outputDir = configFile.getProperty("OUTPUT_FILE");
 		String tdbDir = configFile.getProperty("TDB_DIR");
 		
@@ -167,37 +125,6 @@ public class RDF2Subdue {
 		
 		model.close();
 		logger.info(String.format("[%s] Finished!", sdf.format(System.currentTimeMillis())));
-	}
-
-	private static Model loadModel(String inputDir, String namespaceURI) {
-		Model model = ModelFactory.createDefaultModel();
-		List<ModelLoader> modelPool = new ArrayList<ModelLoader>();
-		
-		File folder = new File(inputDir);
-		for (File fileEntry : folder.listFiles()) {
-			
-			Model tempModel = ModelFactory.createDefaultModel();
-			ModelLoader ml = new ModelLoader(tempModel, fileEntry, namespaceURI);
-			ml.start();
-			
-			modelPool.add(ml);
-			
-		}
-		
-		for (ModelLoader ml : modelPool) {
-			try {
-				ml.join();
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		
-		for (ModelLoader ml : modelPool) {
-			model.add(ml.model);
-		}
-		
-		return model;		
 	}
 
 }
